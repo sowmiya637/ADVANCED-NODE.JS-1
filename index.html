@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Real-time Chat + Worker + Child</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+  <h1>Realtime Chat & Tasks Test</h1>
+
+  <div>
+    <h3>Chat</h3>
+    <input id="chatInput" placeholder="Type message" />
+    <button onclick="sendChat()">Send Chat</button>
+    <ul id="chatLog"></ul>
+  </div>
+
+  <div>
+    <h3>Worker Task (Fibonacci)</h3>
+    <input id="fibInput" type="number" placeholder="Enter n" />
+    <button onclick="sendFib()">Calculate Fib</button>
+    <p id="fibResult"></p>
+  </div>
+
+  <div>
+    <h3>Child Task (Reverse String)</h3>
+    <input id="revInput" placeholder="Enter string" />
+    <button onclick="sendReverse()">Reverse</button>
+    <p id="revResult"></p>
+  </div>
+
+  <script>
+    const socket = io("http://localhost:3000");
+
+    // Chat
+    function sendChat() {
+      const msg = document.getElementById("chatInput").value;
+      socket.emit("chat", msg);   //Socket.io connection to the server
+      document.getElementById("chatInput").value = "";
+    }
+
+    socket.on("chat", data => {
+      const li = document.createElement("li");
+      li.textContent = `[Worker ${data.worker}] ${data.msg}`;
+      document.getElementById("chatLog").appendChild(li);
+    });
+
+    // Worker task (Fibonacci)
+    function sendFib() {
+      const n = parseInt(document.getElementById("fibInput").value);
+      socket.emit("heavyTask", n);
+    }
+
+    socket.on("heavyResult", result => {
+      document.getElementById("fibResult").textContent = "Fibonacci: " + result;
+    });
+
+    // Child task (Reverse string)
+    function sendReverse() {
+      const str = document.getElementById("revInput").value;
+      socket.emit("childTask", str);
+    }
+
+    socket.on("childResult", result => {
+      document.getElementById("revResult").textContent = "Reversed: " + result;
+    });
+  </script>
+</body>
+</html>
